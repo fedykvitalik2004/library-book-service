@@ -2,7 +2,7 @@ package org.vitalii.fedyk.librarybookservice.service.impl;
 
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.vitalii.fedyk.librarybookservice.client.UserClient;
+import org.vitalii.fedyk.librarybookservice.client.UserApi;
 import org.vitalii.fedyk.librarybookservice.dto.BorrowedBookNotificationDto;
 import org.vitalii.fedyk.librarybookservice.dto.ReadUserDto;
 import org.vitalii.fedyk.librarybookservice.exception.NotFoundException;
@@ -11,7 +11,8 @@ import org.vitalii.fedyk.librarybookservice.mapper.BorrowedBookMapper;
 import org.vitalii.fedyk.librarybookservice.model.Book;
 import org.vitalii.fedyk.librarybookservice.model.BorrowedBook;
 import org.vitalii.fedyk.librarybookservice.model.BorrowedBookId;
-import org.vitalii.fedyk.librarybookservice.producer.BorrowedBookNotificationProducer;
+import org.vitalii.fedyk.librarybookservice.producer.DefaultServiceEventsProducer;
+import org.vitalii.fedyk.librarybookservice.producer.IDefaultServiceEventsProducer;
 import org.vitalii.fedyk.librarybookservice.repository.BookRepository;
 import org.vitalii.fedyk.librarybookservice.repository.BorrowedBookRepository;
 import org.vitalii.fedyk.librarybookservice.service.BorrowedBookService;
@@ -28,11 +29,11 @@ import static org.vitalii.fedyk.librarybookservice.constant.ExceptionConstants.*
 @Service
 @AllArgsConstructor
 public class BorrowedBookServiceImpl implements BorrowedBookService {
-    private UserClient userClient;
+    private UserApi userClient;
     private BookRepository bookRepository;
     private BorrowedBookRepository borrowedBookRepository;
     private BorrowedBookMapper borrowedBookMapper;
-    private BorrowedBookNotificationProducer borrowedBookNotificationProducer;
+    private DefaultServiceEventsProducer borrowedBookNotificationProducer;
 
     @Override
     public ReadBorrowedBookDto add(CreateBorrowedBookDto createBorrowedBookDto) {
@@ -48,18 +49,19 @@ public class BorrowedBookServiceImpl implements BorrowedBookService {
             throw new IllegalArgumentException(USER_NOT_FOUND_BY_ID.formatted(createBorrowedBookDto.getUserId()));
         }
         borrowedBook.setBorrowDate(ZonedDateTime.now());
-        borrowedBookNotificationProducer.send(
-                createBorrowedNotificationDto(createBorrowedBookDto.getUserId(), book.getTitle())
+        borrowedBookNotificationProducer.onBorrowedBookNotification(
+                createBorrowedNotificationDto(createBorrowedBookDto.getUserId(), book.getTitle()),
+                new IDefaultServiceEventsProducer.BorrowedBookNotificationDtoHeaders()
         );
         return borrowedBookMapper.toBorrowedBookDto(borrowedBookRepository.save(borrowedBook), book);
     }
 
     private BorrowedBookNotificationDto createBorrowedNotificationDto(long userId, String bookTitle) {
         final ReadUserDto readUserDto = userClient.getUserById(userId);
-        return new BorrowedBookNotificationDto(
-                readUserDto.getFullName().getFirstName(),
-                bookTitle, readUserDto.getEmail()
-        );
+        return new BorrowedBookNotificationDto()
+                .withFirstName(readUserDto.getFullName().getFirstName())
+                .withBookTitle(bookTitle)
+                .withEmail(readUserDto.getEmail());
 
     }
 

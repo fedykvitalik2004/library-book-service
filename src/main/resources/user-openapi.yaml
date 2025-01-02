@@ -1,0 +1,238 @@
+openapi: 3.0.3
+info:
+  title: Library API
+  version: '1.0'
+paths:
+  /users:
+    post:
+      summary: Create a new user
+      operationId: createUser
+      tags:
+        - User
+      requestBody:
+        description: Data for the user to be created
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateUser"
+      responses:
+        '200':
+          description: User successfully created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReadUser"
+        '400':
+          description: Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExceptionMessage'
+        '409':
+          description: Conflict occurred, because user with such an email already exists
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExceptionMessage"
+    get:
+      summary: Get all users
+      operationId: getAllUsers
+      tags:
+        - User
+      x-spring-paginated: true
+      responses:
+        '200':
+          description: All users retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReadUsers"
+  /users/{userId}:
+    parameters:
+      - name: userId
+        required: true
+        in: path
+        description: Identifier of the user
+        schema:
+          type: integer
+          format: int64
+    get:
+      summary: Find a user by ID
+      tags:
+        - User
+      operationId: getUserById
+      responses:
+        '200':
+          description: User successfully retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadUser'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExceptionMessage'
+    put:
+      summary: Update a user
+      tags:
+        - User
+      operationId: updateUser
+      requestBody:
+        description: Data to update the user
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateUser"
+      responses:
+        '200':
+          description: User successfully updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadUser'
+        '400':
+          description: Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExceptionMessage'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExceptionMessage'
+    delete:
+      summary: Delete a user by ID
+      tags:
+        - User
+      operationId: deleteUser
+      responses:
+        '204':
+          description: User successfully deleted
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExceptionMessage'
+        '409':
+          description: User cannot be deleted because it is referenced elsewhere
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExceptionMessage'
+  /users/exists/{userId}:
+    parameters:
+      - name: userId
+        required: true
+        in: path
+        description: Identifier of the user
+        schema:
+          type: integer
+          format: int64
+    get:
+      summary: Check if user exists by his/her id
+      tags:
+        - User
+      operationId: existsById
+      responses:
+        '200':
+          description: Returns true if user exists, false otherwise
+          content:
+            application/json:
+              schema:
+                type: boolean
+components:
+  schemas:
+    UserId:
+      type: integer
+      format: int64
+      example: 1
+      minimum: 1
+    FullName:
+      type: object
+      required:
+        - firstName
+        - lastName
+      properties:
+        firstName:
+          type: string
+          example: "Mykyta"
+        lastName:
+          type: string
+          example: "Shevchenko"
+    ReadUser:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/UserId'
+        fullName:
+          $ref: '#/components/schemas/FullName'
+        email:
+          type: string
+          example: 'mail@gmail.com'
+        birthday:
+          type: string
+          format: date
+          example: "29.03.2001"
+    ReadUsers:
+      type: object
+      properties:
+        users:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReadUser'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+    CreateUser:
+      type: object
+      required:
+        - fullName
+        - email
+        - password
+        - birthday
+      properties:
+        fullName:
+          $ref: "#/components/schemas/FullName"
+        email:
+          type: string
+          example: "mykyta_shechenko@gmail.com"
+          minLength: 8
+          maxLength: 20
+        password:
+          type: string
+          example: "password123!"
+        birthday:
+          type: string
+          format: date
+          example: "29.03.2001"
+    Pagination:
+      type: object
+      properties:
+        pageNumber:
+          type: integer
+          minimum: 0
+          example: 1
+        pageSize:
+          type: integer
+          minimum: 1
+          maximum: 100
+          example: 10
+        totalNumberOfPages:
+          type: integer
+          minimum: 0
+          example: 1
+    ExceptionMessage:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "An error occurred"
+        additionalInfo:
+          type: object
+          additionalProperties:
+            type: object
+          description: "Additional information related to the exception"

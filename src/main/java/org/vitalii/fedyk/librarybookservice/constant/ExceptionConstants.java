@@ -4,8 +4,6 @@ public class ExceptionConstants {
     public static final String AUTHOR_NOT_FOUND_BY_ID = "Author not found by id %d";
     public static final String BOOK_NOT_FOUND_BY_ID = "Book not found by id %d";
     public static final String USER_NOT_FOUND_BY_ID = "User not found by id %d";
-    public static final String EMAIL_ALREADY_USED = "Email %s already used";
-    public static final String USER_CANNOT_BE_DELETED = "You can't delete the user, because the user has borrowed books";
     public static final String BOOK_CANNOT_BE_DELETED = "You can't delete the book, because the book is borrowed";
     public static final String SEARCH_OPERATION_NOT_FOUND = "The search operation doesn't exist";
     public static final String BORROWED_BOOK_NOT_FOUND = "Borrowed book not found";

@@ -307,7 +307,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ExceptionMessage'
-  /borrowed-books/borrowed-by-user/{userId}:
+  /borrowed-books/has-borrowed-books:
     get:
       summary: Check if a book is borrowed by a user
       operationId: isBorrowedByUser
@@ -315,7 +315,7 @@ paths:
         - BorrowedBook
       parameters:
         - name: userId
-          in: path
+          in: query
           required: true
           description: The ID of the user.
           schema:

@@ -31,7 +31,14 @@
         <spring-cloud.version>2024.0.0</spring-cloud.version>
         <mapstruct.version>1.5.5.Final</mapstruct.version>
         <api-package>org.vitalii.fedyk.librarybookservice</api-package>
-        <path-to-spec>${project.basedir}/src/main/resources/openapi.yaml</path-to-spec>
+        <path-to-book-spec>${project.basedir}/src/main/resources/book-openapi.yaml</path-to-book-spec>
+        <asyncapi-spec-path>${project.basedir}/src/main/resources/book-asyncapi.yaml</asyncapi-spec-path>
+        <zenwave.version>1.7.0</zenwave.version>
+        <event-api-package>org.vitalii.fedyk.librarybookservice.event</event-api-package>
+        <path-to-user-spec>${project.basedir}/src/main/resources/user-openapi.yaml</path-to-user-spec>
+        <url.user-open-api.yaml>
+            https://raw.githubusercontent.com/fedykvitalik2004/library-user-service/main/src/main/resources/user-openapi.yaml
+        </url.user-open-api.yaml>
     </properties>
     <dependencies>
         <dependency>
@@ -59,16 +66,8 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-openfeign</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -122,8 +121,18 @@
             <version>${mapstruct.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.springframework.kafka</groupId>
-            <artifactId>spring-kafka</artifactId>
+            <groupId>io.github.zenwave360.zenwave-sdk.plugins</groupId>
+            <artifactId>asyncapi-spring-cloud-streams3</artifactId>
+            <version>${zenwave.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.zenwave360.zenwave-sdk.plugins</groupId>
+            <artifactId>asyncapi-jsonschema2pojo</artifactId>
+            <version>${zenwave.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-stream-kafka</artifactId>
         </dependency>
     </dependencies>
     <dependencyManagement>
@@ -160,6 +169,7 @@
                             <version>0.2.0</version>
                         </path>
                     </annotationProcessorPaths>
+                    <generatedSourcesDirectory>${project.build.directory}/generated-sources</generatedSourcesDirectory>
                 </configuration>
             </plugin>
             <plugin>
@@ -175,18 +185,40 @@
                 </configuration>
             </plugin>
             <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>download-openapi</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>curl</executable>
+                            <arguments>
+                                <argument>-o</argument>
+                                <argument>${path-to-user-spec}</argument>
+                                <argument>${url.user-open-api.yaml}</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <groupId>org.openapitools</groupId>
                 <artifactId>openapi-generator-maven-plugin</artifactId>
-                <version>7.10.0</version> <!-- important for Spring Boot 3.x -->
+                <version>7.10.0</version>
                 <executions>
                     <execution>
                         <goals>
                             <goal>generate</goal>
                         </goals>
-                        <id>generate-api</id>
+                        <id>generate-book-api</id>
                         <configuration>
-                            <inputSpec>${path-to-spec}</inputSpec> <!-- Path to your OpenAPI spec -->
-                            <generatorName>spring</generatorName> <!-- Generator type -->
+                            <inputSpec>${path-to-book-spec}</inputSpec>
+                            <generatorName>spring</generatorName>
                             <library>spring-boot</library>
                             <generateApis>true</generateApis>
                             <generateModels>true</generateModels>
@@ -210,9 +242,93 @@
                             </typeMappings>
                         </configuration>
                     </execution>
+                    <execution>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <id>generate-user-api</id>
+                        <configuration>
+                            <generatorName>java</generatorName>
+                            <library>resttemplate</library>
+                            <inputSpec>${path-to-user-spec}</inputSpec>
+                            <output>${project.build.directory}/generated-sources/openapi</output>
+                            <apiPackage>${api-package}.client</apiPackage>
+                            <modelPackage>${api-package}.dto</modelPackage>
+                            <generateApis>true</generateApis>
+                            <generateModels>true</generateModels>
+                            <generateApiTests>false</generateApiTests>
+                            <generateModelTests>false</generateModelTests>
+                            <modelNameSuffix>Dto</modelNameSuffix>
+                            <configOptions>
+                                <serializableModel>true</serializableModel>
+                                <useJakartaEe>true</useJakartaEe>
+                            </configOptions>
+                            <additionalProperties>
+                                <skipModels>false</skipModels>
+                                <skipApis>false</skipApis>
+                            </additionalProperties>
+                        </configuration>
+                    </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>io.github.zenwave360.zenwave-sdk</groupId>
+                <artifactId>zenwave-sdk-maven-plugin</artifactId>
+                <version>${zenwave.version}</version>
+                <configuration>
+                    <addCompileSourceRoot>true</addCompileSourceRoot>
+                    <addTestCompileSourceRoot>true</addTestCompileSourceRoot>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>generate-asyncapi-dtos</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <generatorName>jsonschema2pojo</generatorName>
+                            <inputSpec>${asyncapi-spec-path}</inputSpec>
+                            <configOptions>
+                                <modelPackage>${api-package}.dto</modelPackage>
+                                <jsonschema2pojo.useJakartaValidation>true</jsonschema2pojo.useJakartaValidation>
+                                <jsonschema2pojo.includeJsr303Annotations>false
+                                </jsonschema2pojo.includeJsr303Annotations>
+                            </configOptions>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-asyncapi-producer</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <configuration>
+                            <generatorName>spring-cloud-streams3</generatorName>
+                            <inputSpec>${asyncapi-spec-path}</inputSpec>
+                            <configOptions>
+                                <operationIds>onBorrowedBookNotification</operationIds>
+                                <role>provider</role>
+                                <style>imperative</style>
+                                <apiPackage>${api-package}.producer</apiPackage>
+                                <modelPackage>${api-package}.dto</modelPackage>
+                            </configOptions>
+                        </configuration>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>io.github.zenwave360.zenwave-sdk.plugins</groupId>
+                        <artifactId>asyncapi-spring-cloud-streams3</artifactId>
+                        <version>${zenwave.version}</version>
+                    </dependency>
+                    <dependency>
+                        <groupId>io.github.zenwave360.zenwave-sdk.plugins</groupId>
+                        <artifactId>asyncapi-jsonschema2pojo</artifactId>
+                        <version>${zenwave.version}</version>
+                    </dependency>
+                </dependencies>
             </plugin>
         </plugins>
     </build>
-
 </project>

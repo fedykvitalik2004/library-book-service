@@ -31,7 +31,7 @@ components:
       description: This property describes the first name of the user
       examples:
         - John
-    borrowedBookNotificationDto:
+    BorrowedBookNotificationDto:
       type: object
       properties:
         firstName:
@@ -46,4 +46,4 @@ components:
   messages:
     borrowedBookNotification:
       payload:
-        $ref: '#/components/schemas/borrowedBookNotificationDto'
+        $ref: '#/components/schemas/BorrowedBookNotificationDto'
