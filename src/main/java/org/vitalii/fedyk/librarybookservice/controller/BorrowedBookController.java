@@ -6,6 +6,8 @@ import org.vitalii.fedyk.librarybookservice.dto.CreateBorrowedBookDto;
 import org.vitalii.fedyk.librarybookservice.dto.ReadBorrowedBookDto;
 import org.vitalii.fedyk.librarybookservice.service.BorrowedBookService;
 
+import java.util.List;
+
 @RestController
 @AllArgsConstructor
 public class BorrowedBookController implements BorrowedBooksApi {
@@ -24,5 +26,10 @@ public class BorrowedBookController implements BorrowedBooksApi {
     @Override
     public Boolean isBorrowedByUser(Long userId) {
         return borrowedBookService.isBorrowedByUser(userId);
+    }
+
+    @Override
+    public List<ReadBorrowedBookDto> findBorrowedBooks(Long userId) {
+        return borrowedBookService.getBorrowedBooksForUser(userId);
     }
 }

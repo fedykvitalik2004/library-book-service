@@ -32,13 +32,17 @@
         <mapstruct.version>1.5.5.Final</mapstruct.version>
         <api-package>org.vitalii.fedyk.librarybookservice</api-package>
         <path-to-book-spec>${project.basedir}/src/main/resources/book-openapi.yaml</path-to-book-spec>
-        <asyncapi-spec-path>${project.basedir}/src/main/resources/book-asyncapi.yaml</asyncapi-spec-path>
         <zenwave.version>1.7.0</zenwave.version>
         <event-api-package>org.vitalii.fedyk.librarybookservice.event</event-api-package>
         <path-to-user-spec>${project.basedir}/src/main/resources/user-openapi.yaml</path-to-user-spec>
+        <path-to-notification-async-spec>${project.basedir}/src/main/resources/notification-asyncapi.yaml
+        </path-to-notification-async-spec>
         <url.user-open-api.yaml>
             https://raw.githubusercontent.com/fedykvitalik2004/library-user-service/main/src/main/resources/user-openapi.yaml
         </url.user-open-api.yaml>
+        <url.notification-async-api.yaml>
+            https://raw.githubusercontent.com/fedykvitalik2004/library-notification-service/main/src/main/resources/notification-asyncapi.yaml
+        </url.notification-async-api.yaml>
     </properties>
     <dependencies>
         <dependency>
@@ -188,7 +192,7 @@
                 <version>3.1.0</version>
                 <executions>
                     <execution>
-                        <id>download-openapi</id>
+                        <id>download-user-openapi</id>
                         <phase>generate-sources</phase>
                         <goals>
                             <goal>exec</goal>
@@ -199,6 +203,21 @@
                                 <argument>-o</argument>
                                 <argument>${path-to-user-spec}</argument>
                                 <argument>${url.user-open-api.yaml}</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>download-notification-asyncapi</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <executable>curl</executable>
+                            <arguments>
+                                <argument>-o</argument>
+                                <argument>${path-to-notification-async-spec}</argument>
+                                <argument>${url.notification-async-api.yaml}</argument>
                             </arguments>
                         </configuration>
                     </execution>
@@ -287,7 +306,7 @@
                         </goals>
                         <configuration>
                             <generatorName>jsonschema2pojo</generatorName>
-                            <inputSpec>${asyncapi-spec-path}</inputSpec>
+                            <inputSpec>${path-to-notification-async-spec}</inputSpec>
                             <configOptions>
                                 <modelPackage>${api-package}.dto</modelPackage>
                                 <jsonschema2pojo.useJakartaValidation>true</jsonschema2pojo.useJakartaValidation>
@@ -304,7 +323,7 @@
                         </goals>
                         <configuration>
                             <generatorName>spring-cloud-streams3</generatorName>
-                            <inputSpec>${asyncapi-spec-path}</inputSpec>
+                            <inputSpec>${path-to-notification-async-spec}</inputSpec>
                             <configOptions>
                                 <operationIds>onBorrowedBookNotification</operationIds>
                                 <role>provider</role>

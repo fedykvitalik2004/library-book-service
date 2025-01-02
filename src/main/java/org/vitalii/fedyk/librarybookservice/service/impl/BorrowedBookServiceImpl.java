@@ -33,7 +33,7 @@ public class BorrowedBookServiceImpl implements BorrowedBookService {
     private BookRepository bookRepository;
     private BorrowedBookRepository borrowedBookRepository;
     private BorrowedBookMapper borrowedBookMapper;
-    private DefaultServiceEventsProducer borrowedBookNotificationProducer;
+    private DefaultServiceEventsProducer producer;
 
     @Override
     public ReadBorrowedBookDto add(CreateBorrowedBookDto createBorrowedBookDto) {
@@ -49,7 +49,7 @@ public class BorrowedBookServiceImpl implements BorrowedBookService {
             throw new IllegalArgumentException(USER_NOT_FOUND_BY_ID.formatted(createBorrowedBookDto.getUserId()));
         }
         borrowedBook.setBorrowDate(ZonedDateTime.now());
-        borrowedBookNotificationProducer.onBorrowedBookNotification(
+        producer.onBorrowedBookNotification(
                 createBorrowedNotificationDto(createBorrowedBookDto.getUserId(), book.getTitle()),
                 new IDefaultServiceEventsProducer.BorrowedBookNotificationDtoHeaders()
         );

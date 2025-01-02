@@ -1,0 +1,79 @@
+asyncapi: 3.0.0
+info:
+  title: Notification Service API
+  version: 1.0.0
+servers:
+  localKafkaServer:
+    host: localhost:9092
+    protocol: kafka
+channels:
+  userRegistrationNotification:
+    description: This channel contains a message per each user that signs up.
+    address: user-registration-notification
+    messages:
+      UserRegistrationNotification:
+        $ref: '#/components/messages/UserRegistrationNotification'
+  borrowedBookNotification:
+    description: This channel contains a message per each book that is borrowed.
+    address: book-notification
+    messages:
+      BorrowedBookNotification:
+        $ref: '#/components/messages/BorrowedBookNotification'
+operations:
+  onUserRegistrationNotification:
+    action: send
+    messages:
+      - $ref: '#/components/messages/UserRegistrationNotification'
+    channel:
+      $ref: '#/channels/userRegistrationNotification'
+  onBorrowedBookNotification:
+    action: send
+    messages:
+      - $ref: '#/components/messages/BorrowedBookNotification'
+    channel:
+      $ref: '#/channels/borrowedBookNotification'
+components:
+  schemas:
+    email:
+      type: string
+      format: email
+      description: This property describes the email of the user
+      examples:
+        - john_doe@mail.com
+    firstName:
+      type: string
+      description: This property describes the first name of the user
+      examples:
+        - John
+    BorrowedBookNotificationDto:
+      type: object
+      properties:
+        firstName:
+          $ref: '#/components/schemas/firstName'
+        email:
+          $ref: '#/components/schemas/email'
+        bookTitle:
+          type: string
+          description: This property describes the title of the borrowed book
+          examples:
+            - Book Name
+    UserRegistrationNotificationDto:
+      type: object
+      properties:
+        firstName:
+          $ref: '#/components/schemas/firstName'
+        email:
+          $ref: '#/components/schemas/email'
+  messages:
+    UserRegistrationNotification:
+      name: UserRegistrationNotification
+      title: User Registration Notification
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/UserRegistrationNotificationDto'
+    BorrowedBookNotification:
+      name: BorrowedBookNotification
+      title: Borrowed Book Notification
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/BorrowedBookNotificationDto'
