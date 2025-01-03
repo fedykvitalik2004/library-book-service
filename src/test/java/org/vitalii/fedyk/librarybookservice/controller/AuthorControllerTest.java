@@ -5,7 +5,6 @@ import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
@@ -20,7 +19,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(AuthorController.class)
+@SpringBootTest
+@AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
 class AuthorControllerTest {
@@ -35,7 +35,7 @@ class AuthorControllerTest {
     @Sql("/data.sql")
     void testDeleteAuthor_OperationNotPermitted() throws Exception {
         final long userId = 1L;
-        mockMvc.perform(delete("/users/{authorId}", userId))
+        mockMvc.perform(delete("/authors/{authorId}", userId))
                 .andExpect(status().isConflict());
         assertTrue(authorRepository.findById(userId).isPresent());
     }

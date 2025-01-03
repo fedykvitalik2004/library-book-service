@@ -58,6 +58,7 @@ public class BorrowedBookServiceImpl implements BorrowedBookService {
 
     private BorrowedBookNotificationDto createBorrowedNotificationDto(long userId, String bookTitle) {
         final ReadUserDto readUserDto = userClient.getUserById(userId);
+        assert readUserDto.getFullName() != null;
         return new BorrowedBookNotificationDto()
                 .withFirstName(readUserDto.getFullName().getFirstName())
                 .withBookTitle(bookTitle)

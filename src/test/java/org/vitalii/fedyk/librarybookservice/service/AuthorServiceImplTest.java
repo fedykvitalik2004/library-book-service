@@ -8,7 +8,6 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.vitalii.fedyk.librarybookservice.dto.CreateAuthorDto;
 import org.vitalii.fedyk.librarybookservice.dto.FullNameDto;
@@ -21,7 +20,6 @@ import org.vitalii.fedyk.librarybookservice.model.Book;
 import org.vitalii.fedyk.librarybookservice.model.BookGenre;
 import org.vitalii.fedyk.librarybookservice.model.FullName;
 import org.vitalii.fedyk.librarybookservice.repository.AuthorRepository;
-import org.vitalii.fedyk.librarybookservice.service.impl.AuthorServiceImpl;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +29,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @SpringBootTest
-@ContextConfiguration(classes = {AuthorServiceImpl.class})
 @ActiveProfiles("test")
 class AuthorServiceImplTest {
     @Autowired
