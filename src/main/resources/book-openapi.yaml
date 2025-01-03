@@ -420,28 +420,6 @@ components:
             $ref: '#/components/schemas/ReadUser'
         pagination:
           $ref: '#/components/schemas/Pagination'
-    CreateUser:
-      type: object
-      required:
-        - fullName
-        - email
-        - password
-        - birthday
-      properties:
-        fullName:
-          $ref: "#/components/schemas/FullName"
-        email:
-          type: string
-          example: "mykyta_shechenko@gmail.com"
-          minLength: 8
-          maxLength: 20
-        password:
-          type: string
-          example: "password123!"
-        birthday:
-          type: string
-          format: date
-          example: "29.03.2001"
     CreateAuthor:
       type: object
       required:
